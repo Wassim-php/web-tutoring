@@ -1,6 +1,6 @@
 # Web Tutoring Platform
 
-A full-stack web application connecting students with tutors for online learning sessions. Built with React and Node.js, featuring real-time session management and secure authentication.
+A full-stack web application connecting students with tutors for online learning sessions. Built with React and Nest.js, featuring real-time session management and secure authentication.
 
 ## Available Routes
 
@@ -60,7 +60,7 @@ GET    /api/topics/:id/tutors # Get topic's tutors
 ## Getting Started
 
 ### Prerequisites
-- Node.js v16+
+- Nest.js v16+
 - MySQL
 - npm/yarn
 
@@ -118,7 +118,7 @@ npm run dev
 - Context API
 
 ### Backend
-- Node.js
+- Nest.js
 - Express
 - MySQL
 - Sequelize ORM

@@ -19,7 +19,7 @@ class TutorService {
     async getTutorById(id) {
         try {
             const response = await api.get(`/tutors/${id}`);
-            return response.data;
+            return response;
         } catch (error) {
             console.error('Error fetching tutor:', error);
             throw error;
