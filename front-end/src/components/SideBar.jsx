@@ -89,7 +89,7 @@ const SideBar = () => {
             
             { user && (
             <li className="sidebar-item position-relative">
-              <Link to={'/messages'} className='text-white position-relative'>
+              <Link to={'/messagesPick'} className='text-white position-relative'>
               Messages</Link>
             </li>
             )

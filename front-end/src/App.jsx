@@ -34,6 +34,7 @@ import SessionsPage from './pages/SessionsPage';
 import ViewProfilePage from './pages/ViewProfilePage';
 import TopicService from './services/TopicService';
 import MessagesPage from './pages/MessagesPage';
+import ChatPickPage from './pages/ChatPickPage';
 
 function App() {
   const [topics, setTopics] = useState([]);
@@ -99,11 +100,17 @@ function App() {
           </ProtectedRoute>
         } />
 
-        <Route path='/messages' element={
+          <Route path='/messagesPick' element={
+          <ProtectedRoute>
+            <ChatPickPage/>
+          </ProtectedRoute>} />
+
+        <Route path='/messages/:id' element={
           <ProtectedRoute>
             <MessagesPage />
           </ProtectedRoute>} />
         </Routes>
+        
     </AuthProvider>
   );
 }
