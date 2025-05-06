@@ -1,17 +1,24 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { SessionService } from './session.service';
+import { SessionGateway } from '../gateways/session.gateway';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { UpdateSessionStatusDto } from '../session/dto/update-session.dto';
 
 @Controller('sessions')
 @UseGuards(JwtAuthGuard)
 export class SessionController {
-  constructor(private readonly sessionService: SessionService) {}
+  constructor(
+    private readonly sessionService: SessionService,
+    private readonly sessionGateway: SessionGateway
+  ) {}
 
   @Post()
-  create(@Body() createSessionDto: CreateSessionDto) {
-    return this.sessionService.create(createSessionDto);
+  async createSession(@Body() createSessionDto: CreateSessionDto) {
+    const session = await this.sessionService.create(createSessionDto);
+    this.sessionGateway.notifyNewSession(session.tutorId);
+    return session;
   }
 
   @Get()
@@ -50,8 +57,13 @@ export class SessionController {
   }
 
   @Patch(':id/status')
-  updateStatus(@Param('id') id: string, @Body('status') status: string) {
-    return this.sessionService.updateStatus(+id, status);
+  async updateStatus(
+    @Param('id') id: string,
+    @Body('status') status: string,
+  ) {
+    const session = await this.sessionService.updateStatus(+id, { status });
+    this.sessionGateway.notifySessionUpdate(session.tutorId);
+    return session;
   }
 
   @Delete(':id')

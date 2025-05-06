@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Session } from './entities/session.entity';
@@ -76,8 +76,15 @@ export class SessionService {
     return await this.sessionRepository.remove(session);
   }
 
-  async updateStatus(id: number, status: string) {
+  async updateStatus(id: number, { status }: { status: string }) {
     const session = await this.findOne(id);
+    
+    // Validate status value
+    const validStatuses = ['pending', 'accepted', 'rejected'];
+    if (!validStatuses.includes(status)) {
+      throw new BadRequestException('Invalid status value');
+    }
+
     session.status = status;
     return await this.sessionRepository.save(session);
   }

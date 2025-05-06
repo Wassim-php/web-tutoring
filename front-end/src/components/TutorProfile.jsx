@@ -26,12 +26,12 @@ const TutorProfile = () => {
             try {
                 console.log('Fetching profile for user:', user?.id);
                 const data = await TutorService.getTutorById(user?.id);
-                setProfileData(data);
+                setProfileData(data.data);
                 console.log('Profile data:', data);
                 console.log('image id: ', data.profilePicture);
                 
-                if (data.profilePicture) {
-                    setPreviewImage(`${BACKEND_URL}/uploads/images/${data.profilePicture}`);
+                if (data.data.profilePicture) {
+                    setPreviewImage(`${BACKEND_URL}/uploads/images/${data.data.profilePicture}`);
                 }
             } catch (error) {
                 console.error('Error fetching profile data:', error);

@@ -4,36 +4,60 @@ import '../App.css';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
+import { io } from 'socket.io-client';
 
 const SideBar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
   const [hasUnreadRequests, setHasUnreadRequests] = useState(false);
   const location = useLocation();
-  
-  //Periodically checks for unread session requests for tutors
-  //* Updates notification dot visibility based on pending requests
+
   useEffect(() => {
-    const checkUnreadRequests = async () => {
-      if (user?.userType === 'Tutor') {
+    if (user?.userType === 'Tutor') {
+      // Initial fetch of sessions
+      const fetchSessions = async () => {
         try {
-          const response = await axios.get(`http://localhost:3000/sessions/tutor/${user.id}`, {
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
+          const response = await axios.get(
+            `http://localhost:3000/sessions/tutor/${user.id}`,
+            {
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+              }
             }
-          });
+          );
           const hasPending = location.pathname !== '/requests' && 
             response.data.some(session => session.status === 'pending');
           setHasUnreadRequests(hasPending);
         } catch (error) {
-          console.error('Error fetching requests:', error);
+          console.error('Error fetching sessions:', error);
         }
-      }
-    };
+      };
 
-    checkUnreadRequests();
-    const interval = setInterval(checkUnreadRequests, 60000); // Changed to 1 minute
-    return () => clearInterval(interval);
+      // Setup WebSocket connection
+      const socket = io('http://localhost:3000', {
+        auth: {
+          token: localStorage.getItem('token')
+        }
+      });
+
+      // Listen for new session requests
+      socket.on('newSessionRequest', async () => {
+        await fetchSessions(); // Refetch sessions when new request comes in
+      });
+
+      // Listen for session status updates
+      socket.on('sessionStatusUpdate', async () => {
+        await fetchSessions(); // Refetch sessions when status changes
+      });
+
+      // Initial fetch
+      fetchSessions();
+
+      // Cleanup
+      return () => {
+        socket.disconnect();
+      };
+    }
   }, [user, location.pathname]);
 
   return (
@@ -63,7 +87,13 @@ const SideBar = () => {
               </Link>
             </li>
             
-            <li className="sidebar-item">Messages</li>
+            { user && (
+            <li className="sidebar-item position-relative">
+              <Link to={'/messages'} className='text-white position-relative'>
+              Messages</Link>
+            </li>
+            )
+            }
             
             {user?.userType === 'Tutor' && (
               <li className="sidebar-item position-relative">
@@ -86,6 +116,7 @@ const SideBar = () => {
                 </li>
               )
             }
+
             
             {user?.userType === 'Tutor' && (
               <li className="sidebar-item">

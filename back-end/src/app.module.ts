@@ -9,6 +9,7 @@ import { Tutor } from './tutors/entities/tutor.entity';
 import { AuthModule } from './auth/auth.module';
 import { TopicsModule } from './topics/topics.module';
 import { SessionModule } from './session/session.module';
+import { MessagesModule } from './messages/messages.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { SessionModule } from './session/session.module';
     AuthModule,
     TopicsModule,
     SessionModule,
+    MessagesModule,
   ],
 })
 export class AppModule {}

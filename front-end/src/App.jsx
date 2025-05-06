@@ -32,7 +32,8 @@ import RequestPage from './pages/RequestPage';
 import NotFoundPage from './pages/NotFoundPage';
 import SessionsPage from './pages/SessionsPage';
 import ViewProfilePage from './pages/ViewProfilePage';
-import TopicService from './services/TopicService'; 
+import TopicService from './services/TopicService';
+import MessagesPage from './pages/MessagesPage';
 
 function App() {
   const [topics, setTopics] = useState([]);
@@ -97,7 +98,12 @@ function App() {
             <ViewProfilePage />
           </ProtectedRoute>
         } />
-      </Routes>
+
+        <Route path='/messages' element={
+          <ProtectedRoute>
+            <MessagesPage />
+          </ProtectedRoute>} />
+        </Routes>
     </AuthProvider>
   );
 }
