@@ -18,10 +18,22 @@ class TutorService {
      */
     async getTutorById(id) {
         try {
+            console.log('Fetching tutor profile for ID:', id);
             const response = await api.get(`/tutors/${id}`);
-            return response;
+            console.log('Tutor profile response:', response.data);
+            return response.data;
         } catch (error) {
-            console.error('Error fetching tutor:', error);
+            console.error('Error fetching tutor profile:', {
+                code: error.code,
+                message: error.message,
+                response: error.response?.data
+            });
+            if (error.code === 'ERR_CONNECTION_REFUSED') {
+                throw new Error('Unable to connect to server. Please check if the server is running.');
+            }
+            if (error.response?.status === 404) {
+                throw new Error('Tutor profile not found');
+            }
             throw error;
         }
     }
@@ -30,8 +42,37 @@ class TutorService {
      * Creates a new tutor profile
      */
     async createTutor(tutorData) {
-        const response = await api.post('/tutors', tutorData);
-        return response.data;
+        try {
+            // Log the data being sent for debugging
+            console.log('Creating tutor with data:', tutorData);
+
+            const response = await api.post('/tutors', tutorData);
+            return response.data;
+        } catch (error) {
+            // Enhanced error logging
+            if (error.response) {
+                // The request was made and the server responded with a status code
+                // that falls out of the range of 2xx
+                console.error('Error creating tutor - Server Response:', {
+                    data: error.response.data,
+                    status: error.response.status,
+                    headers: error.response.headers
+                });
+            } else if (error.request) {
+                // The request was made but no response was received
+                console.error('Error creating tutor - No Response:', error.request);
+            } else {
+                // Something happened in setting up the request
+                console.error('Error creating tutor - Request Setup:', error.message);
+            }
+
+            // Throw a more informative error
+            throw {
+                message: error.response?.data?.message || 'Failed to create tutor profile',
+                status: error.response?.status,
+                details: error.response?.data
+            };
+        }
     }
 
     /**

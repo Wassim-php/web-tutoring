@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateMessageDto } from './dto/create-message.dto';
@@ -12,11 +12,23 @@ export class MessagesService {
     private messagesRepository: Repository<Message>
   ) {}
 
-  async create(createMessageDto: CreateMessageDto): Promise<Message> {
+  async create(messageData: {
+    content: string;
+    chat_id: number;
+    user_id: number;
+    is_read: boolean;
+  }): Promise<Message> {
+    if (!messageData.chat_id) {
+      throw new BadRequestException('chat_id is required');
+    }
+
     try {
-      const message = this.messagesRepository.create(createMessageDto);
-      return await this.messagesRepository.save(message);
+      const message = this.messagesRepository.create(messageData);
+      const savedMessage = await this.messagesRepository.save(message);
+      console.log('Message saved:', savedMessage); // Add this for debugging
+      return savedMessage;
     } catch (error) {
+      console.error('Error saving message:', error);
       throw new Error(`Failed to create message: ${error.message}`);
     }
   }
@@ -67,10 +79,10 @@ export class MessagesService {
     }
   }
 
-  async findBySession(sessionId: number): Promise<Message[]> {
+  async findBySession(chatId: number): Promise<Message[]> {
     try {
       return await this.messagesRepository.find({
-        where: { session_id: sessionId },
+        where: { chat_id: chatId },
         relations: ['user'],
         order: { sent_at: 'ASC' }
       });

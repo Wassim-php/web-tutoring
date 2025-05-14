@@ -1,99 +1,182 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import TutorService from '../services/TutorService';
+import { useAppDispatch, useAppSelector } from '../app/hook';
+import { fetchTutorProfile, updateTutorProfile, clearTutorProfile, setProfile } from '../features/tutor/tutorSlice';
+import { selectTutorProfile, selectTutorStatus, selectTutorError } from '../features/tutor/tutorSelectors';
 import '../App.css';
 
 const BACKEND_URL = 'http://localhost:3000';
 
 const TutorProfile = () => {
-    // Profile data state management
     const { user } = useAuth();
-    const [profileData, setProfileData] = useState({
-        name: '',
+    const dispatch = useAppDispatch();
+    const [previewImage, setPreviewImage] = useState(null);
+    const profile = useAppSelector(selectTutorProfile);
+    const status = useAppSelector(selectTutorStatus);
+    const error = useAppSelector(selectTutorError);
+    const [formData, setFormData] = useState({
         bio: '',
-        certifications: '',
-        hourlyRate: '',
-        joinedDate: '',
-        profilePicture: '',
+        hourlyRate: 0,
+        profilePicture: ''
     });
 
-    const [previewImage, setPreviewImage] = useState(null);
-
-    // Fetches tutor profile data on component mount
-
+    // Combined profile initialization effect
     useEffect(() => {
-        const fetchProfileData = async () => {
+        const initializeProfile = async () => {
+            if (!user?.id) return;
+
             try {
-                console.log('Fetching profile for user:', user?.id);
-                const data = await TutorService.getTutorById(user?.id);
-                setProfileData(data.data);
-                console.log('Profile data:', data);
-                console.log('image id: ', data.profilePicture);
+                // First try to get from localStorage with proper null check
+                const savedProfile = localStorage.getItem('tutorProfile');
+                if (savedProfile && savedProfile !== 'undefined') {
+                    try {
+                        const parsedProfile = JSON.parse(savedProfile);
+                        if (parsedProfile && typeof parsedProfile === 'object') {
+                            dispatch(setProfile(parsedProfile));
+                        }
+                    } catch (error) {
+                        console.error('Error parsing saved profile:', error);
+                        localStorage.removeItem('tutorProfile'); // Clean up invalid data
+                    }
+                }
+
+                // Then fetch fresh data from server
+                const result = await dispatch(fetchTutorProfile(user.id)).unwrap();
+                console.log('Fresh profile data:', result);
                 
-                if (data.data.profilePicture) {
-                    setPreviewImage(`${BACKEND_URL}/uploads/images/${data.data.profilePicture}`);
+                // Update localStorage only if we have valid data
+                if (result && typeof result === 'object') {
+                    localStorage.setItem('tutorProfile', JSON.stringify(result));
                 }
             } catch (error) {
-                console.error('Error fetching profile data:', error);
+                console.error('Profile initialization error:', error);
             }
         };
 
-        if (user?.id) {
-            fetchProfileData();
+        initializeProfile();
+
+        // Cleanup on unmount
+        return () => {
+            setFormData({
+                bio: '',
+                hourlyRate: 0,
+                profilePicture: ''
+            });
+            setPreviewImage(null);
+        };
+    }, [dispatch, user?.id]);
+
+    // Update form data when profile changes
+    useEffect(() => {
+        if (profile) {
+            console.log('Setting form data from profile:', profile);
+            setFormData({
+                bio: profile.bio || '',
+                hourlyRate: parseFloat(profile.hourlyRate) || 0,
+                profilePicture: profile.profilePicture || ''
+            });
         }
-    }, [user]);
-    //Handles form input changes
+    }, [profile]);
+
+    // Update preview image when profile changes
+    useEffect(() => {
+        if (profile?.profilePicture) {
+            const imageUrl = `${BACKEND_URL}/uploads/images/${profile.profilePicture}`;
+            console.log('Setting preview image:', imageUrl);
+            setPreviewImage(imageUrl);
+        }
+    }, [profile]);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setProfileData({
-            ...profileData,
-            [name]: value,
-        });
+        setFormData(prev => ({
+            ...prev,
+            [name]: name === 'hourlyRate' ? Number(value) : value
+        }));
     };
-    //Handles profile picture upload and preview
+
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
             const imageString = file.name;
-            setProfileData({
-                ...profileData,
-                profilePicture: imageString,
-            });
-            // Create temporary preview URL for new file
+            setFormData(prev => ({
+                ...prev,
+                profilePicture: imageString
+            }));
             setPreviewImage(URL.createObjectURL(file));
         }
     };
     
-    //Processes form submission and updates profile
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        const updateData = {
-            bio: profileData.bio,
-            hourlyRate: parseFloat(profileData.hourlyRate),
-            profilePicture: profileData.profilePicture,
-        };
-
-        console.log('Sending update data:', updateData);
+        if (!formData.hourlyRate || isNaN(formData.hourlyRate) || formData.hourlyRate <= 0) {
+            alert('Please enter a valid hourly rate greater than 0');
+            return;
+        }
 
         try {
-            const updatedTutor = await TutorService.updateTutorProfile(user.id, updateData);
-            setProfileData(updatedTutor);
+            const updatedProfile = {
+                ...profile,
+                bio: formData.bio.trim(),
+                hourlyRate: Number(formData.hourlyRate),
+                profilePicture: formData.profilePicture
+            };
+
+            const result = await dispatch(updateTutorProfile({ 
+                id: user.id, 
+                updateData: updatedProfile
+            })).unwrap();
+            
+            // Update both localStorage and Redux state
+            localStorage.setItem('tutorProfile', JSON.stringify(result));
+            dispatch(setProfile(result));
+            
             alert('Profile updated successfully!');
-        } catch (error) {
-            console.error('Error details:', {
-                message: error.message,
-                response: error.response?.data
-            });
-            alert('Failed to update profile. Please try again.');
+        } catch (err) {
+            console.error('Update failed:', err);
+            alert(err.message || 'Failed to update profile. Please try again.');
         }
     };
+
+    if (!user) {
+        return <div>Please log in to view your profile</div>;
+    }
+
+    if (status === 'loading') {
+        return <div>Loading profile...</div>;
+    }
+
+    if (status === 'failed') {
+        return (
+            <div className="error-message">
+                <p>{error || 'Failed to load profile'}</p>
+                <button onClick={() => dispatch(fetchTutorProfile(user.id))}>
+                    Try Again
+                </button>
+            </div>
+        );
+    }
+
+    if (!profile) {
+        return (
+            <div className="no-profile">
+                <p>No profile data found. This could mean:</p>
+                <ul>
+                    <li>You haven't created a tutor profile yet</li>
+                    <li>There was an error loading your profile</li>
+                </ul>
+                <button onClick={() => dispatch(fetchTutorProfile(user.id))}>
+                    Refresh Profile
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div className="tutor-profile-container">
             <h2>Tutor Profile</h2>
             <form onSubmit={handleSubmit}>
-                {/* Profile Picture */}
                 <div className="profile-picture-section">
                     <label htmlFor="profile-picture" className="profile-picture-label">
                         {previewImage ? (
@@ -112,14 +195,13 @@ const TutorProfile = () => {
                     />
                 </div>
 
-                {/* Read-Only Fields */}
                 <div className="form-group">
                     <label htmlFor="name">Name</label>
                     <input
                         type="text"
                         id="name"
                         name="name"
-                        value={profileData.name}
+                        value={profile.name}
                         readOnly
                         className="read-only"
                     />
@@ -131,7 +213,7 @@ const TutorProfile = () => {
                         type="text"
                         id="certifications"
                         name="certifications"
-                        value={profileData.certifications}
+                        value={profile.certifications}
                         readOnly
                         className="read-only"
                     />
@@ -143,19 +225,18 @@ const TutorProfile = () => {
                         type="text"
                         id="joinedDate"
                         name="joinedDate"
-                        value={profileData.joinedDate}
+                        value={profile.joinedDate}
                         readOnly
                         className="read-only"
                     />
                 </div>
 
-                {/* Editable Fields */}
                 <div className="form-group">
                     <label htmlFor="bio">Bio</label>
                     <textarea
                         id="bio"
                         name="bio"
-                        value={profileData.bio}
+                        value={formData.bio}
                         onChange={handleChange}
                         rows="4"
                         required
@@ -168,9 +249,10 @@ const TutorProfile = () => {
                         type="number"
                         id="hourlyRate"
                         name="hourlyRate"
-                        value={profileData.hourlyRate}
+                        value={formData.hourlyRate}
                         onChange={handleChange}
                         min="0"
+                        step="0.01"
                         required
                     />
                 </div>

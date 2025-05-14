@@ -45,15 +45,15 @@ const TeacherList = ({ topic }) => {
       }
 
       const sessionData = {
-        studentId: user.id,
-        tutorId: tutorId,
-        topicId: topic.id,
+        studentId: Number(user.id),
+        tutorId: Number(tutorId),
+        topicId: Number(topic.id),
         startTime: new Date(),
         duration_minutes: 60,
         status: 'pending',
         notes: `Session request for ${topic.name}`
       };
-
+      console.log('Session data: ', sessionData)
       const newSession = await TutorTopicService.createSession(sessionData);
       alert('Session request sent successfully!');
       setPendingSessions([...pendingSessions, newSession]);

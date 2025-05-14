@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { 
+  Controller, 
+  Get, 
+  Post, 
+  Body, 
+  Patch, 
+  Param, 
+  Delete, 
+  UseGuards,
+  ParseIntPipe 
+} from '@nestjs/common';
 import { MessagesService } from './messages.service';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
@@ -20,27 +30,33 @@ export class MessagesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.messagesService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.messagesService.findOne(id);
   }
 
-  @Get('session/:sessionId')
-  findBySession(@Param('sessionId') sessionId: string) {
-    return this.messagesService.findBySession(+sessionId);
+  @Get('chat/:chatId')
+  findBySession(@Param('chatId', ParseIntPipe) chatId: number) {
+    if(!chatId){
+      throw new Error('Session Id is required')
+    }
+    return this.messagesService.findBySession(chatId);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateMessageDto: UpdateMessageDto) {
-    return this.messagesService.update(+id, updateMessageDto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateMessageDto: UpdateMessageDto
+  ) {
+    return this.messagesService.update(id, updateMessageDto);
   }
 
   @Patch(':id/read')
-  markAsRead(@Param('id') id: string) {
-    return this.messagesService.markAsRead(+id);
+  markAsRead(@Param('id', ParseIntPipe) id: number) {
+    return this.messagesService.markAsRead(id);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.messagesService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.messagesService.remove(id);
   }
 }

@@ -18,7 +18,7 @@ const StudentRegisterForm = () => {
      
     const [formData, setFormData] = useState({
         gradeLevel: '',
-        Major: '',
+        major: '',
         enrolledDate: new Date().toISOString(),
         
     });
@@ -32,8 +32,8 @@ const StudentRegisterForm = () => {
             errors.gradeLevel = 'Grade Level is required';
         }
 
-        if(!formData.Major.trim()){
-            errors.Major = 'Major is required';
+        if(!formData.major.trim()){
+            errors.major = 'Major is required';
         }
         return errors;  // Add this return statement
     };
@@ -125,14 +125,14 @@ const StudentRegisterForm = () => {
             <Form.Control
               type="text"
               placeholder="Enter Your Major"
-              name="Major"
-              value={formData.Major}
+              name="major"
+              value={formData.major}
               onChange={handleChange}
-              isInvalid={!!formErrors.Major}
+              isInvalid={!!formErrors.major}
               required
             />
             <Form.Control.Feedback type="invalid">
-              {formErrors.Major}
+              {formErrors.major}
             </Form.Control.Feedback>
           </Col>
         </Form.Group>

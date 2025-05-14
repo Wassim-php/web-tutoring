@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { User } from './users/entities/user.entity';
@@ -10,9 +11,14 @@ import { AuthModule } from './auth/auth.module';
 import { TopicsModule } from './topics/topics.module';
 import { SessionModule } from './session/session.module';
 import { MessagesModule } from './messages/messages.module';
+import { ChatsModule } from './chats/chats.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: '127.0.0.1',
@@ -31,6 +37,7 @@ import { MessagesModule } from './messages/messages.module';
     TopicsModule,
     SessionModule,
     MessagesModule,
+    ChatsModule,
   ],
 })
 export class AppModule {}

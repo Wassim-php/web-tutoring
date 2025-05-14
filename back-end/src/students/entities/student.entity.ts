@@ -17,7 +17,7 @@ export class Student {
   enrolledDate: Date;
 
   @Column({ length: 20 })
-  Major: string;
+  major: string;
 
   @OneToOne(() => User)
   @JoinColumn({ name: 'id' })

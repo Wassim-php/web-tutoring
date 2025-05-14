@@ -45,8 +45,23 @@ const ChatPick = () => {
   };
 
   // Navigate to messages page with selected user
-  const handleUserSelect = (selectedUser) => {
-    navigate(`/messages/${selectedUser.id}`);
+  const handleUserSelect = async (selectedUser) => {
+    try {
+      // First create or get existing chat between users
+      const response = await axios.post(`${BACKEND_URL}/chats`, {
+        user1_id: currentUser.id,  
+        user2_id: selectedUser.id  
+      }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      // Navigate with the chat ID
+      navigate(`/messages/${response.data.id}`);
+    } catch (error) {
+      console.error('Error creating/getting chat:', error.response?.data || error);
+    }
   };
 
   const getProfilePicture = (user) => {

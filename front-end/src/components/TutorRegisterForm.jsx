@@ -21,6 +21,7 @@ const TutorRegisterForm = () => {
         hourlyRate: '',
         certifications: '',
         joinedDate: new Date().toISOString(),
+        profilePicture: '',
     });
 
     const [formErrors, setFormErrors] = useState({});
@@ -83,16 +84,24 @@ const TutorRegisterForm = () => {
                 ...formData,
                 id: userId,
                 hourlyRate: parseFloat(formData.hourlyRate),
-                certifications: formData.certifications
+                certifications: formData.certifications,
+                profilePicture: formData.profilePicture || 'default.png',
             };
 
+            // Log the form data before submission
+            console.log('Submitting tutor data:', tutorData);
+            
             const response = await TutorService.createTutor(tutorData);
-            console.log('Tutor profile created: ', response.data);
             navigate('/');
         } catch (error) {
-            console.error('Error details: ', error.response?.data);
+            console.error('Registration failed:', {
+                message: error.message,
+                status: error.status,
+                details: error.details
+            });
+            
             setFormErrors({
-                submit: error.response?.data?.message || 'Registration failed'
+                submit: error.message || 'Failed to create tutor profile'
             });
         } finally {
             setIsSubmitting(false);

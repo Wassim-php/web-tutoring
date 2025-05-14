@@ -26,8 +26,8 @@ const ViewProfile = ({id}) => {
                 ]);
                 
                 setUser(userResponse.data);
-                setTutor(tutorResponse.data);
-                console.log('Tutor data:', tutorResponse.data); // Debug log
+                setTutor(tutorResponse);
+                console.log('Tutor data:', tutorResponse); // Debug log
             } catch (error) {
                 console.error('Error fetching data:', error);
                 setError('Failed to load profile');

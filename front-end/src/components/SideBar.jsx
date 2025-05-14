@@ -11,6 +11,7 @@ const SideBar = () => {
   const { user } = useAuth();
   const [hasUnreadRequests, setHasUnreadRequests] = useState(false);
   const location = useLocation();
+  let socket = null; // Removed TypeScript annotation
 
   useEffect(() => {
     if (user?.userType === 'Tutor') {
@@ -33,11 +34,28 @@ const SideBar = () => {
         }
       };
 
-      // Setup WebSocket connection
-      const socket = io('http://localhost:3000', {
+      // Initialize socket connection
+      socket = io('http://localhost:3000', {
+        transports: ['websocket', 'polling'],
         auth: {
           token: localStorage.getItem('token')
-        }
+        },
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+        autoConnect: false // Prevent auto-connection
+      });
+
+      // Connect manually after setup
+      socket.connect();
+
+      // Handle connection events
+      socket.on('connect', () => {
+        console.log('Connected to socket server');
+      });
+
+      socket.on('connect_error', (error) => {
+        console.error('Socket connection error:', error);
       });
 
       // Listen for new session requests
@@ -55,7 +73,10 @@ const SideBar = () => {
 
       // Cleanup
       return () => {
-        socket.disconnect();
+        if (socket) {
+          socket.disconnect();
+          socket = null;
+        }
       };
     }
   }, [user, location.pathname]);

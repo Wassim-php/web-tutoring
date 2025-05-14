@@ -1,30 +1,30 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { Session } from '../../session/entities/session.entity';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
+import { Chat } from '../../chats/entities/chat.entity';
 import { User } from '../../users/entities/user.entity';
 
-@Entity()
+@Entity('messages')
 export class Message {
     @PrimaryGeneratedColumn()
     id: number;
 
     @Column()
-    session_id: number;
+    content: string;
+
+    @Column()
+    chat_id: number;
 
     @Column()
     user_id: number;
 
-    @Column()
-    content: string;
-
-    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    @CreateDateColumn()
     sent_at: Date;
 
     @Column({ default: false })
     is_read: boolean;
 
-    @ManyToOne(() => Session)
-    @JoinColumn({ name: 'session_id' })
-    session: Session;
+    @ManyToOne(() => Chat)
+    @JoinColumn({ name: 'chat_id' })
+    chat: Chat;
 
     @ManyToOne(() => User)
     @JoinColumn({ name: 'user_id' })

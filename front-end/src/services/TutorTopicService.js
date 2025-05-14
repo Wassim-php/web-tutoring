@@ -25,8 +25,33 @@ class TutorTopicService {
      * Creates a new tutoring session
      */
     async createSession(sessionData) {
-        const response = await api.post('/sessions', sessionData);
-        return response.data;
+        try {
+            // Validate required fields
+            const requiredFields = ['studentId', 'tutorId', 'topicId', 'startTime', 'duration_minutes', 'status'];
+            const missingFields = requiredFields.filter(field => !sessionData[field]);
+            
+            if (missingFields.length > 0) {
+                throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+            }
+
+            // Format the data before sending
+            const formattedData = {
+                ...sessionData,
+                schedueled_at: new Date(sessionData.startTime).toISOString(), // Convert to ISO string
+                studentId: Number(sessionData.studentId),
+                tutorId: Number(sessionData.tutorId),
+                topicId: Number(sessionData.topicId),
+                duration_minutes: Number(sessionData.duration_minutes)
+            };
+
+            console.log('Sending formatted session data:', formattedData);
+
+            const response = await api.post('/sessions', formattedData);
+            return response.data;
+        } catch (error) {
+            console.error('Session creation error:', error);
+            throw error;
+        }
     }
 
     /**
