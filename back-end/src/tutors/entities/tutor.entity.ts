@@ -1,33 +1,42 @@
-import { Entity, Column, PrimaryColumn, OneToOne, JoinColumn, ManyToMany, JoinTable, OneToMany } from 'typeorm';
+import { ObjectType, Field, ID, Float } from '@nestjs/graphql';
+import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, ManyToMany, JoinTable, OneToMany } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Topic } from '../../topics/entities/topic.entity';
 import { Session } from '../../session/entities/session.entity';
+@ObjectType()
 @Entity()
 export class Tutor {
-  @PrimaryColumn()
+  @Field(() => ID)
+  @PrimaryGeneratedColumn()
   id: number;
 
+  @Field({ nullable: true })
   @Column('text')
   bio: string;
 
-  @Column('decimal', { precision: 10, scale: 2 })
-  hourlyRate: number;
+  @Field(() => Float, { nullable: true })
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  hourlyRate?: number;
 
-  @Column('varchar', { length: 255 })
-  certifications: string;
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  profilePicture?: string;
 
+  @Field({ nullable: true })
+  @Column('varchar', { length: 255, nullable: true })
+  certifications?: string;
+
+  @Field({ nullable: true })
   @Column({ 
     type: 'timestamp', 
-    default: () => 'CURRENT_TIMESTAMP' 
+    default: () => 'CURRENT_TIMESTAMP',
+    nullable: true
   })
-  joinedDate: Date;
+  joinedDate?: Date;
 
   @OneToOne(() => User)
   @JoinColumn({ name: 'id' })
   user: User;
-
-  @Column({type: 'text', nullable: true})
-  profilePicture: string;
 
   @ManyToMany(() => Topic, topic => topic.tutors)
   @JoinTable({

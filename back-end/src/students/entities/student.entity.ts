@@ -1,24 +1,28 @@
-import { Entity, Column, PrimaryColumn, OneToOne, JoinColumn, OneToMany } from 'typeorm';
+import { ObjectType, Field, ID } from '@nestjs/graphql';
+import { Entity, Column, PrimaryGeneratedColumn, OneToOne, JoinColumn, OneToMany } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Session } from 'src/session/entities/session.entity';
 
+@ObjectType()
 @Entity()
 export class Student {
-  @PrimaryColumn()
+  @Field(() => ID)
+  @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ length: 20 })
+  @Field()
+  @Column()
   gradeLevel: string;
 
-  @Column({ 
-    type: 'timestamp', 
-    default: () => 'CURRENT_TIMESTAMP' 
-  })
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  major?: string;
+
+  @Field(() => Date)
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   enrolledDate: Date;
 
-  @Column({ length: 20 })
-  major: string;
-
+  @Field(() => User)
   @OneToOne(() => User)
   @JoinColumn({ name: 'id' })
   user: User;

@@ -4,10 +4,11 @@ import { TutorsController } from './tutors.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Tutor } from './entities/tutor.entity';
 import { Topic } from 'src/topics/entities/topic.entity';
+import { TutorsResolver } from './tutors.resolver';
 
 @Module({
   controllers: [TutorsController],
-  providers: [TutorsService],
+  providers: [TutorsService, TutorsResolver],
   imports: [TypeOrmModule.forFeature([Tutor, Topic])],
   exports: [TutorsService]
 

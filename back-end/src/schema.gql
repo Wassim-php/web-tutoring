@@ -1,0 +1,58 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Mutation {
+  updateStudent(id: Int!, updateData: UpdateStudentInput!): Student!
+  updateTutor(id: Int!, updateData: UpdateTutorInput!): Tutor!
+}
+
+type Query {
+  student(id: Int!): Student!
+  students: [Student!]!
+  tutor(id: Int!): Tutor!
+  tutors: [Tutor!]!
+}
+
+type Student {
+  enrolledDate: DateTime!
+  gradeLevel: String!
+  id: ID!
+  major: String
+  user: User!
+}
+
+type Tutor {
+  bio: String
+  certifications: String
+  hourlyRate: Float
+  id: ID!
+  joinedDate: DateTime
+  profilePicture: String
+}
+
+input UpdateStudentInput {
+  Major: String
+  enrolledDate: DateTime
+  gradeLevel: String
+}
+
+input UpdateTutorInput {
+  bio: String
+  certification: String
+  hourlyRate: Float
+  profilePicture: String
+}
+
+type User {
+  email: String!
+  id: ID!
+  isActive: Boolean!
+  name: String!
+  userType: String!
+}
