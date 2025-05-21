@@ -56,6 +56,25 @@ PUT    /api/topics/:id     # Update topic
 DELETE /api/topics/:id     # Remove topic
 GET    /api/topics/:id/tutors # Get topic's tutors
 ```
+### Requests
+```http
+GET    /api/requests          # List all chats
+GET    /api/requests/:id      # Get chat details
+POST   /api/requests         # Create new chat
+PUT    /api/requests/:id     # Update chat
+DELETE /api/requests/:id     # Remove chat
+```
+### Chats
+```http
+GET    /api/chats          # List all chats
+GET    /api/chats/:id      # Get chat details
+POST   /api/chats         # Create new chat
+PUT    /api/chats/:id     # Update chats
+DELETE /api/chats/:id     # Remove chat
+```
+
+
+
 
 ## Getting Started
 
